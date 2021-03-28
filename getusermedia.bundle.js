@@ -17,12 +17,12 @@ module.exports = function (constraints, cb) {
         constraints = defaultOpts;
     }
 
-    var accessFunction = navigator.getUserMedia ||
+    var accessFunction =
+      navigator.getUserMedia ||
       navigator.mediaDevices.getUserMedia ||
       navigator.webkitGetUserMedia ||
       navigator.mozGetUserMedia ||
       navigator.msGetUserMedia;
-    console.log(accessFunction);
 
     // treat lack of browser support like an error
     if (typeof navigator === 'undefined' || !accessFunction) {
@@ -47,9 +47,7 @@ module.exports = function (constraints, cb) {
         }, 0);
     }
 
-  accessFunction(constraints,function(stream) {
-    cb(null,stream);
-  }, function(error) {
+  navigator.mediaDevices.getUserMedia(constraints).then(stream => cb(null,stream)).catch(err => {
     var error;
     // coerce into an error object since FF gives us a string
     // there are only two valid names according to the spec
