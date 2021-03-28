@@ -17,11 +17,12 @@ module.exports = function (constraints, cb) {
     }
 
     var accessFunction = navigator.getUserMedia ||
-      navigator.mediaDevices.getUserMedia ||
-      navigator.webkitGetUserMedia ||
-      navigator.mozGetUserMedia ||
-      navigator.msGetUserMedia;
-    
+        navigator.mediaDevices.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia;
+    console.log(accessFunction);
+
     // treat lack of browser support like an error
     if (typeof navigator === 'undefined' || !accessFunction) {
         // throw proper error per spec
@@ -45,10 +46,9 @@ module.exports = function (constraints, cb) {
         }, 0);
     }
 
-    accessFunction(constraints)
-    .then(function (stream) {
-        cb(null, stream);
-    }).catch(function (err) {
+    accessFunction(constraints, function(stream) {
+        cb(null,stream);
+    }, function(error) {
         var error;
         // coerce into an error object since FF gives us a string
         // there are only two valid names according to the spec
@@ -75,7 +75,6 @@ module.exports = function (constraints, cb) {
                 }
             }
         }
-
         cb(error);
     });
 };
