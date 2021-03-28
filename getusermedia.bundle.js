@@ -16,13 +16,14 @@ module.exports = function (constraints, cb) {
         cb = constraints;
         constraints = defaultOpts;
     }
-    
+
     var accessFunction = navigator.getUserMedia ||
       navigator.mediaDevices.getUserMedia ||
       navigator.webkitGetUserMedia ||
       navigator.mozGetUserMedia ||
       navigator.msGetUserMedia;
-    
+    console.log(accessFunction);
+
     // treat lack of browser support like an error
     if (typeof navigator === 'undefined' || !accessFunction) {
         // throw proper error per spec
@@ -46,39 +47,37 @@ module.exports = function (constraints, cb) {
         }, 0);
     }
 
-    accessFunction(constraints)
-    .then(function (stream) {
-        cb(null, stream);
-    }).catch(function (err) {
-        var error;
-        // coerce into an error object since FF gives us a string
-        // there are only two valid names according to the spec
-        // we coerce all non-denied to "constraint not satisfied".
-        if (typeof err === 'string') {
-            error = new Error('MediaStreamError');
-            if (err === denied || err === altDenied) {
-                error.name = denied;
-            } else {
-                error.name = notSatisfied;
-            }
+  accessFunction(constraints,function(stream) {
+    cb(null,stream);
+  }, function(error) {
+    var error;
+    // coerce into an error object since FF gives us a string
+    // there are only two valid names according to the spec
+    // we coerce all non-denied to "constraint not satisfied".
+    if (typeof err === 'string') {
+      error = new Error('MediaStreamError');
+      if (err === denied || err === altDenied) {
+        error.name = denied;
+      } else {
+        error.name = notSatisfied;
+      }
+    } else {
+      // if we get an error object make sure '.name' property is set
+      // according to spec: http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermediaerror-and-navigatorusermediaerrorcallback
+      error = err;
+      if (!error.name) {
+        // this is likely chrome which
+        // sets a property called "ERROR_DENIED" on the error object
+        // if so we make sure to set a name
+        if (error[denied]) {
+          err.name = denied;
         } else {
-            // if we get an error object make sure '.name' property is set
-            // according to spec: http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermediaerror-and-navigatorusermediaerrorcallback
-            error = err;
-            if (!error.name) {
-                // this is likely chrome which
-                // sets a property called "ERROR_DENIED" on the error object
-                // if so we make sure to set a name
-                if (error[denied]) {
-                    err.name = denied;
-                } else {
-                    err.name = notSatisfied;
-                }
-            }
+          err.name = notSatisfied;
         }
-
-        cb(error);
-    });
+      }
+    }
+    cb(error);
+  });
 };
 
 },{"webrtc-adapter":3}],2:[function(require,module,exports){
