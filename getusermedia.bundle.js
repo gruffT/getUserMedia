@@ -16,15 +16,15 @@ module.exports = function (constraints, cb) {
         cb = constraints;
         constraints = defaultOpts;
     }
-
-    // treat lack of browser support like an error
-    if (typeof navigator === 'undefined' || !(
-      navigator.getUserMedia ||
+    
+    var accessFunction = navigator.getUserMedia ||
       navigator.mediaDevices.getUserMedia ||
       navigator.webkitGetUserMedia ||
       navigator.mozGetUserMedia ||
-      navigator.msGetUserMedia
-    )) {
+      navigator.msGetUserMedia;
+    
+    // treat lack of browser support like an error
+    if (typeof navigator === 'undefined' || !accessFunction) {
         // throw proper error per spec
         error = new Error('MediaStreamError');
         error.name = 'NotSupportedError';
@@ -46,7 +46,7 @@ module.exports = function (constraints, cb) {
         }, 0);
     }
 
-    navigator.mediaDevices.getUserMedia(constraints)
+    accessFunction(constraints)
     .then(function (stream) {
         cb(null, stream);
     }).catch(function (err) {
